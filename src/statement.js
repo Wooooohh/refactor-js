@@ -4,21 +4,25 @@ function statement (invoice, plays) {
   return createStatement(plays, volumeCredits, amounts, invoice);
 }
 
+function playFor(plays, perf){
+    return plays[perf.playID];
+}
+
 function createStatement(plays, volumeCredits, amounts, invoice){
-    let result = `Statement for ${invoice.customer}\n`;
-   let totalAmount = 0;
+  let result = `Statement for ${invoice.customer}\n`;
+  let totalAmount = 0;
   const format = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
   }).format;
   let i = 0;
-   for (let perf of invoice.performances) {
-      const play = plays[perf.playID];
-      let thisAmount = amounts[i++]
-      result += ` ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`;
-      totalAmount += thisAmount;
-   }
+  for (let perf of invoice.performances) {
+    const play = playFor(plays, perf);
+    let thisAmount = amounts[i++]
+    result += ` ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`;
+    totalAmount += thisAmount;
+  }
   result += `Amount owed is ${format(totalAmount / 100)}\n`;
   result += `You earned ${volumeCredits} credits \n`;
   return result;
@@ -27,7 +31,7 @@ function createStatement(plays, volumeCredits, amounts, invoice){
 function calculateAmounts(plays,invoice){
     let amounts = [];
     for (let perf of invoice.performances) {
-        const play = plays[perf.playID];
+        const play = playFor(plays, perf);
         let thisAmount = calculateAmount(play, perf);
         amounts.push(thisAmount);
     }
@@ -37,7 +41,7 @@ function calculateAmounts(plays,invoice){
 function calculateVolumeCredits(plays, invoice){
     let totalVolumeCredits = 0;
     for (let perf of invoice.performances) {
-        const play = plays[perf.playID];
+        const play = playFor(plays, perf);
         totalVolumeCredits += Math.max(perf.audience - 30, 0);
         // add extra credit for every ten comedy attendees
         if ('comedy' === play.type) totalVolumeCredits += Math.floor(perf.audience / 5);
